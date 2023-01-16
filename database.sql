@@ -15,11 +15,12 @@ CREATE TABLE users(
 
 CREATE TABLE chat_room(
     id SERIAL PRIMARY KEY,
-    users INT [] NOT NULL check (
-        users <> '{}'
-        and array_position(users, null) is null
+    users_id INT [] NOT NULL check (
+        users_id <> '{}'
+        and array_position(users_id, null) is null
     ),
-    last_message INT
+    last_message INT,
+    chat_name VARCHAR(255)
 );
 
 CREATE TABLE message_list(
@@ -27,7 +28,7 @@ CREATE TABLE message_list(
     sender INT NOT NULL,
     reader INT NOT NULL,
     content VARCHAR(255) NOT NULL,
-    chat_room INT NOT NULL
+    chat_room_id INT NOT NULL
 );
 
 -- Add new columns to table
