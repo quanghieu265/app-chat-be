@@ -73,5 +73,5 @@ io.of("/").adapter.on("join-room", (room, id) => {
 
 //LISSTENERS
 server.listen(port, () => {
-  console.log("server listening on port: 5000");
+  console.log(`server listening on port: ${port}`);
 });
