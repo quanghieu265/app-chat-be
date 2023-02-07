@@ -8,7 +8,7 @@ const pool = new Pool({
   database: process.env.NODE_ENV === "development" ? "perntodo" : "postgres",
   password:
     process.env.NODE_ENV === "development"
-      ? "Admin"
+      ? "Admin@123"
       : process.env.SUPABASE_DATABASE_PASSWORD,
   port: 5432,
 });

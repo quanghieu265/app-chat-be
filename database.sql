@@ -10,7 +10,8 @@ CREATE TABLE users(
     username VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
-    created_on TIMESTAMP NOT NULL
+    created_on TIMESTAMP NOT NULL,
+    chat_notice_id INT []
 );
 
 CREATE TABLE chat_room(
@@ -20,7 +21,8 @@ CREATE TABLE chat_room(
         and array_position(users_id, null) is null
     ),
     last_message INT,
-    chat_name VARCHAR(255)
+    chat_name VARCHAR(255),
+    update_on TIMESTAMP NOT NULL
 );
 
 CREATE TABLE message_list(
@@ -28,7 +30,8 @@ CREATE TABLE message_list(
     sender INT NOT NULL,
     reader INT NOT NULL,
     content VARCHAR(255) NOT NULL,
-    chat_room_id INT NOT NULL
+    chat_room_id INT NOT NULL,
+    created_on TIMESTAMP NOT NULL
 );
 
 -- Add new columns to table

@@ -17,7 +17,7 @@ const addUserToChat = async (req, res) => {
     } else {
       const users_id = [userId, myId];
       const chat = await pool.query(
-        "INSERT INTO chat_room (users_id) VALUES($1) RETURNING *",
+        "INSERT INTO chat_room (users_id, update_on) VALUES($1, current_timestamp) RETURNING *",
         [users_id]
       );
       return res.status(200).json(chat.rows[0]);
@@ -77,14 +77,14 @@ const addNewMessage = async (req, res) => {
   let senderId = req.user.id;
   let readerId = usersId.filter((id) => id !== senderId)[0];
   const newMessageData = await pool.query(
-    "INSERT INTO message_list(sender,reader,content,chat_room_id) VALUES($1,$2,$3,$4) RETURNING *",
+    "INSERT INTO message_list(sender,reader,content,chat_room_id, created_on) VALUES($1,$2,$3,$4,current_timestamp) RETURNING *",
     [senderId, readerId, message, chatId]
   );
   // update last message to chat room
-  await pool.query("UPDATE chat_room SET last_message =$1 WHERE id = $2", [
-    newMessageData.rows[0].id,
-    chatId,
-  ]);
+  await pool.query(
+    "UPDATE chat_room SET last_message = $1, update_on = current_timestamp WHERE id = $2",
+    [newMessageData.rows[0].id, chatId]
+  );
   return res.status(200).json(newMessageData.rows[0]);
 };
 
@@ -106,10 +106,17 @@ const deleteChatById = async (req, res) => {
   }
 };
 
+const updateUserNoticeChatById = async (req, res) => {
+  const { chatid } = req.params;
+  const myId = req.user.id;
+  const data = req.body;
+};
+
 module.exports = {
   addUserToChat,
   getCurrentChat,
   getMessageById,
   addNewMessage,
   deleteChatById,
+  updateUserNoticeChatById,
 };

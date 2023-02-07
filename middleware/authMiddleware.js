@@ -1,6 +1,7 @@
 const pool = require("../db.js");
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
+
 const authHandler = asyncHandler(async (req, res, next) => {
   const nonSecurePaths = ["/api/user/login"];
   if (nonSecurePaths.includes(req.path)) return next();
