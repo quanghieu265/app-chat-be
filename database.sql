@@ -30,6 +30,7 @@ CREATE TABLE message_list(
     sender INT NOT NULL,
     reader INT NOT NULL,
     content VARCHAR(255) NOT NULL,
+    tag VARCHAR(255) NOT NULL,
     chat_room_id INT NOT NULL,
     created_on TIMESTAMP NOT NULL
 );

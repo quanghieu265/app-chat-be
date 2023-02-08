@@ -76,16 +76,21 @@ const addNewMessage = async (req, res) => {
   const { chatId, message, usersId } = req.body;
   let senderId = req.user.id;
   let readerId = usersId.filter((id) => id !== senderId)[0];
+  let queryValues = "";
+  message.forEach((item, index) => {
+    queryValues += `(${senderId},${readerId},'${item.content}','${
+      item.type
+    }',${chatId},current_timestamp)${index !== message.length - 1 ? "," : " "}`;
+  });
   const newMessageData = await pool.query(
-    "INSERT INTO message_list(sender,reader,content,chat_room_id, created_on) VALUES($1,$2,$3,$4,current_timestamp) RETURNING *",
-    [senderId, readerId, message, chatId]
+    `INSERT INTO message_list(sender,reader,content,tag,chat_room_id, created_on) VALUES${queryValues} RETURNING *`
   );
   // update last message to chat room
   await pool.query(
     "UPDATE chat_room SET last_message = $1, update_on = current_timestamp WHERE id = $2",
-    [newMessageData.rows[0].id, chatId]
+    [newMessageData.rows[newMessageData.rows.length - 1].id, chatId]
   );
-  return res.status(200).json(newMessageData.rows[0]);
+  return res.status(200).json(newMessageData.rows);
 };
 
 // @desc delete chat by id
