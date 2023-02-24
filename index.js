@@ -6,9 +6,14 @@ require("dotenv").config({ path: __dirname + "/.env" });
 const port = process.env.PORT || 5000;
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
 const { errHandler } = require("./middleware/errorMiddleware");
 const { authHandler } = require("./middleware/authMiddleware");
-const { createUser, loginUser } = require("./controllers/userController");
+const {
+  createUser,
+  loginUser,
+  refreshAccessToken
+} = require("./controllers/userController");
 const http = require("http");
 const app = express();
 
@@ -18,12 +23,14 @@ const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
     origin: "*",
-    credentials: true,
-  },
+    credentials: true
+  }
 });
 
 // MIDDLEWARE
-app.use(cors());
+app.use(cookieParser());
+app.use(cors({ credentials: true, origin: true }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -38,6 +45,9 @@ app.post("/api/user/login", loginUser);
 //AUTH ROUTES
 //auth middleware
 app.use(authHandler);
+
+// refresh access token
+app.get("/api/user/refresh", refreshAccessToken);
 // todo-route
 app.use("/api/todo", require("./routes/todoRoutes"));
 //user routes
@@ -63,14 +73,14 @@ app.get("/video/:id", (req, res) => {
       "Content-Range": `bytes ${start}-${end}/${fileSize}`,
       "Accept-Ranges": "bytes",
       "Content-Length": chunksize,
-      "Content-Type": "video/mp4",
+      "Content-Type": "video/mp4"
     };
     res.writeHead(206, head);
     file.pipe(res);
   } else {
     const head = {
       "Content-Length": fileSize,
-      "Content-Type": "video/mp4",
+      "Content-Type": "video/mp4"
     };
     res.writeHead(200, head);
     fs.createReadStream(path).pipe(res);
@@ -78,8 +88,8 @@ app.get("/video/:id", (req, res) => {
 });
 
 // SOCKET LISTENERS
-io.on("connection", (socket) => {
-  socket.on("setup-chat", (userId) => {
+io.on("connection", socket => {
+  socket.on("setup-chat", userId => {
     socket.join(userId);
     socket.emit("connected-chat");
   });
@@ -96,7 +106,7 @@ io.on("connection", (socket) => {
     socket.leave();
   });
 
-  socket.on("get-stream", (id) => {
+  socket.on("get-stream", id => {
     let data;
     try {
       data = fs.readFileSync(

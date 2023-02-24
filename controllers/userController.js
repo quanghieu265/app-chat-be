@@ -5,10 +5,8 @@ const bcrypt = require("bcrypt");
 const asyncHandler = require("express-async-handler");
 
 // Generate token
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7,
-  });
+const generateToken = (payload, exp) => {
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: exp });
 };
 
 // @desc Get all users
@@ -24,9 +22,17 @@ const getUsers = asyncHandler(async (req, res) => {
   }
 });
 
+const getAllUsers = asyncHandler(async (req, res) => {
+  const users = await pool.query("SELECT id,username,email FROM users");
+  if (users.rows) {
+    return res.status(200).json(users.rows);
+  }
+});
+
 // @desc Get user by id
 const getUserById = asyncHandler(async (req, res) => {
-  const { id } = parseInt(req.params.id);
+  const id = parseInt(req.params.id);
+
   if (id) {
     const user = await pool.query(
       "SELECT id,username,email FROM users WHERE id = $1",
@@ -50,10 +56,11 @@ const deleteUser = asyncHandler(async (req, res) => {
 });
 
 // @desc Create a user
-// @route POST /api/users/signup
+// @route POST /api/user/signup
 // @access Public
 const createUser = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
+
   if (username && password && email) {
     const user = await pool.query(
       "SELECT * FROM users WHERE username=$1 OR email=$2",
@@ -80,19 +87,31 @@ const createUser = asyncHandler(async (req, res) => {
 // @route POST /api/users/login
 const loginUser = asyncHandler(async (req, res) => {
   const { username, password } = req.body;
-
   if (username && password) {
     const user = await pool.query("SELECT * FROM users WHERE username=$1", [
-      username,
+      username
     ]);
     if (user.rows[0]) {
+      //check if  username and password are valid
       const isMatch = await bcrypt.compare(password, user.rows[0].password);
       if (isMatch) {
-        return res.status(200).json({
+        const payload = {
           id: user.rows[0].id,
           username: user.rows[0].username,
-          email: user.rows[0].email,
-          token: generateToken(user.rows[0].id),
+          email: user.rows[0].email
+        };
+        const accessToken = generateToken(payload, "30m");
+        const refreshToken = generateToken({ id: payload.id }, "7d");
+
+        // Set refresh token cookie
+        res.cookie("refreshToken", refreshToken, {
+          httpOnly: true,
+          maxAge: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7
+        });
+
+        return res.status(200).json({
+          ...payload,
+          token: accessToken
         });
       } else {
         return res
@@ -108,4 +127,21 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { createUser, getUsers, getUserById, deleteUser, loginUser };
+const refreshAccessToken = asyncHandler(async (req, res) => {
+  const payload = req.user;
+  const accessToken = generateToken(payload, "30m");
+  return res.status(200).json({
+    ...payload,
+    token: accessToken
+  });
+});
+
+module.exports = {
+  createUser,
+  getUsers,
+  getAllUsers,
+  getUserById,
+  deleteUser,
+  loginUser,
+  refreshAccessToken
+};

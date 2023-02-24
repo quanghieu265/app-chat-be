@@ -1,6 +1,6 @@
 const pool = require("../db.js");
-const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
+const { jwtVerify } = require("../utils/jwt.utils");
 
 const authHandler = asyncHandler(async (req, res, next) => {
   const nonSecurePaths = ["/api/user/login"];
@@ -10,20 +10,29 @@ const authHandler = asyncHandler(async (req, res, next) => {
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer ")
   ) {
-    try {
-      token = req.headers.authorization.split(" ")[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const id = parseInt(decoded.id);
+    token = req.headers.authorization.split(" ")[1];
+    // check access token is valid
+    const payload = jwtVerify(token);
+    if (payload) {
+      req.user = payload;
+      return next();
+    }
+
+    // check Refresh token is valid
+    const { refreshToken } = req.cookies;
+    const payloadRefreshToken = jwtVerify(refreshToken);
+    if (payloadRefreshToken) {
+      const id = parseInt(payloadRefreshToken.id);
       const user = await pool.query(
         "SELECT id,username,email FROM users WHERE id = $1",
         [id]
       );
       req.user = user.rows[0];
-      next();
-    } catch (err) {
-      res.status(401);
-      throw new Error("Invalid authorization");
+      return next();
     }
+
+    res.status(401);
+    throw new Error("Invalid authorization");
   } else {
     res.status(401);
     throw new Error("No token provided");
