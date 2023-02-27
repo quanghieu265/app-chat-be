@@ -12,6 +12,7 @@ const { authHandler } = require("./middleware/authMiddleware");
 const {
   createUser,
   loginUser,
+  logoutUser,
   refreshAccessToken
 } = require("./controllers/userController");
 const http = require("http");
@@ -41,6 +42,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 //PUBLIC ROUTES
 app.post("/api/user/signup", createUser);
 app.post("/api/user/login", loginUser);
+app.post("/api/user/logout", logoutUser);
 
 //AUTH ROUTES
 //auth middleware

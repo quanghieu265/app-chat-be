@@ -127,6 +127,11 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 });
 
+const logoutUser = asyncHandler(async (req, res) => {
+  res.clearCookie("refreshToken");
+  return res.status(200).json({ message: "success" });
+});
+
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const payload = req.user;
   const accessToken = generateToken(payload, "30m");
@@ -143,5 +148,6 @@ module.exports = {
   getUserById,
   deleteUser,
   loginUser,
+  logoutUser,
   refreshAccessToken
 };

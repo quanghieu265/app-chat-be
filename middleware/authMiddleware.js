@@ -30,7 +30,7 @@ const authHandler = asyncHandler(async (req, res, next) => {
       req.user = user.rows[0];
       return next();
     }
-
+    res.clearCookie("refreshToken");
     res.status(401);
     throw new Error("Invalid authorization");
   } else {
