@@ -119,13 +119,27 @@ io.on("connection", socket => {
       socket.broadcast.emit("send-stream-to-client", null);
     }
   });
+
+  //video call socket
+  socket.on("send-offer",(data)=>{
+    socket.to(data.signalTo).emit("receive-offer", data);
+  })
+  socket.on("send-answer",(data)=>{
+    socket.to(data.signalTo).emit("receive-answer", data);
+  })
+  socket.on("send-ice",(data)=>{
+    socket.to(data.signalTo).emit("receive-ice", data.ice);
+  })
+  socket.on("send-ended",(data)=>{
+    socket.to(data.signalTo).emit("receive-ended");
+  })
 });
 
 io.of("/").adapter.on("join-room", (room, id) => {
   // console.log(`socket ${id} has joined room ${room}`);
 });
 
-//LISSTENERS
+//LISTENERS
 server.listen(port, () => {
   console.log(`server listening on port: ${port}`);
 });
