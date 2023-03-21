@@ -12,13 +12,16 @@ const generateToken = (payload, exp) => {
 // @desc Get all users
 // @route GET /api/users
 // @access Public
-const getUsers = asyncHandler(async (req, res) => {
+const searchUsers = asyncHandler(async (req, res) => {
+  const { username } = req.query;
+  const myId = req.user.id;
+
   const users = await pool.query(
-    "SELECT id,username,email FROM users Where username!=$1",
-    [req.user.username]
+    "SELECT id,username,email FROM users Where username LIKE '%' || $1 || '%' AND id != $2",
+    [username, myId]
   );
   if (users.rows) {
-    return res.status(200).json(users.rows);
+    return res.status(200).json({ users: users.rows });
   }
 });
 
@@ -83,6 +86,28 @@ const createUser = asyncHandler(async (req, res) => {
   }
 });
 
+//
+const addUserToFriend = asyncHandler(async (req, res) => {
+  const { userId } = req.body;
+  const myId = req.user.id;
+  const friendsList = await pool.query(
+    "SELECT friends_id FROM users WHERE id = $1",
+    [myId]
+  );
+  let { friends_id } = friendsList.rows[0];
+  if (friends_id && friends_id.length && friends_id.includes(userId)) {
+    res.status(400);
+    throw new Error("User already in the list of friends");
+  } else {
+    const test =
+      "UPDATE users as u SET friends_id = array_append(friends_id,c.value::integer ) from (values ($1, $2), ($2,$1) ) as c(id, value) WHERE u.id = c.id::integer RETURNING *";
+    // add friend to user friends list
+    const user = await pool.query(test, [userId, myId]);
+
+    return res.status(200).json(user.rows);
+  }
+});
+
 // @desc login user
 // @route POST /api/users/login
 const loginUser = asyncHandler(async (req, res) => {
@@ -98,7 +123,8 @@ const loginUser = asyncHandler(async (req, res) => {
         const payload = {
           id: user.rows[0].id,
           username: user.rows[0].username,
-          email: user.rows[0].email
+          email: user.rows[0].email,
+          friends_id: user.rows[0].friends_id || []
         };
         const accessToken = generateToken(payload, "30m");
         const refreshToken = generateToken({ id: payload.id }, "7d");
@@ -143,11 +169,12 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 module.exports = {
   createUser,
-  getUsers,
+  searchUsers,
   getAllUsers,
   getUserById,
   deleteUser,
   loginUser,
   logoutUser,
-  refreshAccessToken
+  refreshAccessToken,
+  addUserToFriend
 };

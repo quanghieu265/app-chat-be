@@ -11,7 +11,8 @@ CREATE TABLE users(
     password VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     created_on TIMESTAMP NOT NULL,
-    chat_notice_id INT []
+    chat_notice_id INT [],
+    friends_id INT []
 );
 
 CREATE TABLE chat_room(

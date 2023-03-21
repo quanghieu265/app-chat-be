@@ -7,8 +7,10 @@ const {
   addNewMessage,
   deleteChatById,
   updateUserNoticeChatById,
+  getFriendList,
 } = require("../controllers/chatController");
 
+router.get("/friends", getFriendList);
 router.get("/", getCurrentChat);
 router.get("/message/:id", getMessageById);
 router.post("/message", addNewMessage);
