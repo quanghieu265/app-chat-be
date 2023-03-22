@@ -1,6 +1,7 @@
 const pool = require("../db");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const { authorModel } = require("../mongoose/blogs-model/model");
 //package handle exceptions
 const asyncHandler = require("express-async-handler");
 
@@ -75,11 +76,14 @@ const createUser = asyncHandler(async (req, res) => {
     const currentTime = new Date();
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    await pool.query(
-      "INSERT INTO users (username, email, password, created_on) VALUES($1,$2,$3,$4)",
+    const newUser = await pool.query(
+      "INSERT INTO users (username, email, password, created_on) VALUES($1,$2,$3,$4) RETURNING email,username",
       [username, email, hashedPassword, currentTime]
     );
-    return res.status(201).json({ message: "success" });
+    if (newUser.rows && newUser.rows[0]) {
+      await authorModel.create(newUser.rows[0])
+      return res.status(201).json({ message: "success" });
+    }
   } else {
     res.status(400);
     throw new Error("Invalid username or password");
