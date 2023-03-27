@@ -81,7 +81,7 @@ const createUser = asyncHandler(async (req, res) => {
       [username, email, hashedPassword, currentTime]
     );
     if (newUser.rows && newUser.rows[0]) {
-      await authorModel.create(newUser.rows[0])
+      await authorModel.create(newUser.rows[0]);
       return res.status(201).json({ message: "success" });
     }
   } else {
@@ -171,6 +171,42 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc update user information
+// @route PUT /api/users/:id
+const updateUserById = asyncHandler(async (req, res) => {
+  const data = req.body;
+  const myId = req.user.id;
+  const userId = req.params.id;
+
+  if (userId === myId) {
+    return res.status(400).json({ message: "You cannot update this user." });
+  }
+
+  let updateFields = [];
+  for (const property in data) {
+    updateFields.push(`${property} = '${data[property]}'`);
+  }
+
+  // update on postgres
+  const response = await pool.query(
+    `UPDATE users SET ${updateFields.join()} WHERE id = $1 RETURNING id,email,username,friends_id,avatar_url`,
+    [userId]
+  );
+
+  const user = response.rows[0];
+  // update on mongoDB
+  const userDoc = await authorModel.findOne({ username: user.username });
+  if (userDoc) {
+    for (const property in data) {
+      userDoc[property] = data[property];
+    }
+    console.log(userDoc);
+    await userDoc.save().then(() => {
+      return res.status(200).json(user);
+    });
+  }
+});
+
 module.exports = {
   createUser,
   searchUsers,
@@ -180,5 +216,6 @@ module.exports = {
   loginUser,
   logoutUser,
   refreshAccessToken,
-  addUserToFriend
+  addUserToFriend,
+  updateUserById
 };
