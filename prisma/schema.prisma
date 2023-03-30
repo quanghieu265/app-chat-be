@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Creating the database schema
+model User {
+  // consider replace autoincrement  = uuid
+  id         Int      @id @default(autoincrement())
+  username   String   @unique @db.VarChar(255)
+  password   String   @db.VarChar(255)
+  avatarUrl  String?  @map("avatar_url") @db.VarChar(255)
+  email      String   @unique @db.VarChar(255)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
+  friendsIds Int[]    @map("friends_id")
+
+  @@map("users")
+}
+
+model ChatRoom {
+  id          Int      @id @default(autoincrement())
+  usersId     Int[]    @map("users_id")
+  lastMessage Int?     @map("last_message")
+  chatName    String?  @db.VarChar(255)
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("chat_room")
+}
+
+model MessageList {
+  id         Int      @id @default(autoincrement())
+  sender     Int
+  reader     Int
+  content    String   @db.VarChar(255)
+  tag        String   @db.VarChar(255)
+  chatRoomId Int      @map("chat_room_id")
+  createdAt  DateTime @updatedAt @map("created_at")
+
+  @@map("message_list")
+}

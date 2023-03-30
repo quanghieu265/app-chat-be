@@ -77,7 +77,7 @@ const createUser = asyncHandler(async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     const newUser = await pool.query(
-      "INSERT INTO users (username, email, password, created_on) VALUES($1,$2,$3,$4) RETURNING email,username",
+      "INSERT INTO users (username, email, password, created_at) VALUES($1,$2,$3,$4) RETURNING email,username",
       [username, email, hashedPassword, currentTime]
     );
     if (newUser.rows && newUser.rows[0]) {

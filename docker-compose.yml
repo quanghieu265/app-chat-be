@@ -1,0 +1,57 @@
+services:
+  backend:
+    # define container name
+    container_name: nodejs
+    restart: always
+    # add file .env to container
+    env_file: .env
+    # build container ,using both 'build' and 'image' will change the name of image, but stil using the build ./Dockerfile
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: quanghieu265/nodejs-docker-compose:latest
+
+    # add environment variable to container
+    environment:
+      - POSTGRES_HOST=postgresdb
+    # mapping port HOST:CONTAINER
+    ports:
+      - 5000:5000
+    depends_on:
+      - db
+
+  db:
+    container_name: postgresdb
+    # if using 'image' alone without build, it will pull the image from docker hub
+    image: postgres
+    restart: always
+    volumes:
+      - /db-data:/var/lib/postgresql/data
+    # postgres requires some initialization environment variables
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    # The expose section allows us to expose specific ports from our container only to other services on the same network.
+    # The ports are open not only for other services on the same network, but also to the host. 
+    ports:
+      - ${POSTGRES_PORT}:5432
+    # expose:
+    #   - 5432
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4:latest
+    # pdadmin requires some init enviroment variables
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=Admin@123
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    restart: unless-stopped
+
+volumes:
+  db-data:
+  pgadmin-data:

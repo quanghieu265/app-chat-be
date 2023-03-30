@@ -21,7 +21,7 @@ const addUserToChat = asyncHandler(async (req, res) => {
 
     // create a new chat room
     const chat = await pool.query(
-      "INSERT INTO chat_room (users_id, update_on) VALUES($1, current_timestamp) RETURNING *",
+      "INSERT INTO chat_room (users_id, updated_at) VALUES($1, current_timestamp) RETURNING *",
       [users_id]
     );
 
@@ -85,11 +85,11 @@ const addNewMessage = asyncHandler(async (req, res) => {
     }',${chatId},current_timestamp)${index !== message.length - 1 ? "," : " "}`;
   });
   const newMessageData = await pool.query(
-    `INSERT INTO message_list(sender,reader,content,tag,chat_room_id, created_on) VALUES${queryValues} RETURNING *`
+    `INSERT INTO message_list(sender,reader,content,tag,chat_room_id, created_at) VALUES${queryValues} RETURNING *`
   );
   // update last message to chat room
   await pool.query(
-    "UPDATE chat_room SET last_message = $1, update_on = current_timestamp WHERE id = $2",
+    "UPDATE chat_room SET last_message = $1, updated_at = current_timestamp WHERE id = $2",
     [newMessageData.rows[newMessageData.rows.length - 1].id, chatId]
   );
   return res.status(200).json(newMessageData.rows);
