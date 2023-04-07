@@ -1,4 +1,4 @@
-const pool = require("../db");
+const pool = require("../../db");
 // @desc get Todo
 // @route GET /api/todo
 // access private

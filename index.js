@@ -15,7 +15,7 @@ const {
   loginUser,
   logoutUser,
   refreshAccessToken
-} = require("./controllers/userController");
+} = require("./modules/controllers/userController");
 const http = require("http");
 const app = express();
 
@@ -52,14 +52,15 @@ app.use(authHandler);
 // refresh access token
 app.get("/api/user/refresh", refreshAccessToken);
 // todo-route
-app.use("/api/todo", require("./routes/todoRoutes"));
+app.use("/api/todo", require("./modules/routes/todoRoutes"));
 //user routes
-app.use("/api/user", require("./routes/userRoutes"));
+app.use("/api/user", require("./modules/routes/userRoutes"));
 //chat routes
-app.use("/api/chat", require("./routes/chatRoutes"));
+app.use("/api/chat", require("./modules/routes/chatRoutes"));
 // blog routes
-app.use("/api/blog", require("./routes/blogRoutes"));
-
+app.use("/api/blog", require("./modules/routes/blogRoutes"));
+// blog routes
+app.use("/api/playlist", require("./modules/routes/streamRoutes"));
 // catch 404 and forward to error handler
 app.use(errHandler);
 

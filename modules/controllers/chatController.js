@@ -1,4 +1,4 @@
-const pool = require("../db");
+const pool = require("../../db");
 //package handle exceptions
 const asyncHandler = require("express-async-handler");
 

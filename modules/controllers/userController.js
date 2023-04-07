@@ -1,7 +1,7 @@
-const pool = require("../db");
+const pool = require("../../db");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const { authorModel } = require("../mongoose/blogs-model/model");
+const { authorModel } = require("../../mongoose/blogs-model/model");
 //package handle exceptions
 const asyncHandler = require("express-async-handler");
 
@@ -130,8 +130,8 @@ const loginUser = asyncHandler(async (req, res) => {
           email: user.rows[0].email,
           friends_id: user.rows[0].friends_id || []
         };
-        const accessToken = generateToken(payload, "30m");
-        const refreshToken = generateToken({ id: payload.id }, "7d");
+        const accessToken = generateToken(payload, "10m");
+        const refreshToken = generateToken({ id: payload.id }, "1d");
 
         // Set refresh token cookie
         res.cookie("refreshToken", refreshToken, {

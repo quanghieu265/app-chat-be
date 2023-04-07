@@ -14,8 +14,18 @@ const authHandler = asyncHandler(async (req, res, next) => {
     // check access token is valid
     const payload = jwtVerify(token);
     if (payload) {
-      req.user = payload;
-      return next();
+      const id = parseInt(payload.id);
+      const user = await pool.query(
+        "SELECT id,username,email FROM users WHERE id = $1",
+        [id]
+      );
+      if (user.rows[0]) {
+        req.user = user.rows[0];
+        return next();
+      } else {
+        res.status(401);
+        throw new Error("Invalid authorization");
+      }
     }
 
     // check Refresh token is valid
@@ -27,8 +37,13 @@ const authHandler = asyncHandler(async (req, res, next) => {
         "SELECT id,username,email FROM users WHERE id = $1",
         [id]
       );
-      req.user = user.rows[0];
-      return next();
+      if (user.rows[0]) {
+        req.user = user.rows[0];
+        return next();
+      } else {
+        res.status(401);
+        throw new Error("Invalid authorization");
+      }
     }
     res.clearCookie("refreshToken");
     res.status(401);

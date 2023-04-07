@@ -1,7 +1,7 @@
 //package handle exceptions
 const asyncHandler = require("express-async-handler");
 // mongoose model
-const { postModel, authorModel } = require("../mongoose/blogs-model/model");
+const { postModel, authorModel } = require("../../mongoose/blogs-model/model");
 
 const getBlogById = asyncHandler(async (req, res) => {
   const { username } = req.params;
