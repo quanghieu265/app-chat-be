@@ -57,8 +57,19 @@ const deleteVideoById = asyncHandler(async (req, res) => {
   }
 });
 
+const getVideoById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const video = await playlistModel.findOne({ _id: id }).populate("author");
+  if (video) {
+    return res.status(200).json(video);
+  } else {
+    return res.status(400).json({ message: "This video don't exist" });
+  }
+});
+
 module.exports = {
   addNewVideoToPlaylist,
   deleteVideoById,
-  getPlaylistByUser
+  getPlaylistByUser,
+  getVideoById
 };
